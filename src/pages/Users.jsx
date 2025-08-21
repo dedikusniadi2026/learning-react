@@ -12,6 +12,7 @@ import {
 } from "antd";
 import { toast } from "react-toastify";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import '../styles/table-custom.css';
 
 const { Title } = Typography;
 

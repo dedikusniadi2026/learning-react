@@ -18,10 +18,10 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import { Rate } from "antd";
+import '../styles/table-custom.css';
+
 
 const { Title } = Typography;
-
-
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -186,7 +186,7 @@ const Products = () => {
     {
       title: "Name",
       dataIndex: "title",
-      sorter: (a, b) => a.title.localeCompare(b.title)
+      sorter: (a, b) => a.title.localeCompare(b.title),
     },
     {
       title: "Price",

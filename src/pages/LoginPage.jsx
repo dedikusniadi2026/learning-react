@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Form, Input, Button, message, Card } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useAuthStore } from '../store/useAuthStore';
@@ -7,8 +7,11 @@ import { useNavigate } from 'react-router-dom';
 const LoginPage = () => {
   const setLoggedIn = useAuthStore((state) => state.setLoggedIn);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false); // ⬅️ state loading
 
   const onFinish = () => {
+    setLoading(true); // ⬅️ mulai loading
+
     const credentials = {
       username: 'mor_2314',
       password: '83r5^_',
@@ -21,7 +24,6 @@ const LoginPage = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
         if (data.token) {
           message.success('Login successful!');
           setLoggedIn(true);
@@ -30,25 +32,21 @@ const LoginPage = () => {
           message.error('Login failed!');
         }
       })
-      .catch(() => message.error('An error occurred'));
+      .catch(() => message.error('An error occurred'))
+      .finally(() => setLoading(false));
   };
 
   return (
-    
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '100vh',
-      background: '#f0f2f5'
-    }}>
-
-
-      <Card
-        title="Login"
-        bordered={false}
-        style={{ width: 350 }}
-      >
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        background: '#1C6EA4',
+      }}
+    >
+      <Card title="Login" bordered={false} style={{ width: 350 }}>
         <Form
           name="login"
           onFinish={onFinish}
@@ -73,7 +71,7 @@ const LoginPage = () => {
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" block>
+            <Button type="primary" htmlType="submit" block loading={loading}>
               Log in
             </Button>
           </Form.Item>

@@ -1,0 +1,26 @@
+
+.ant-table-thead > tr > th {
+  background-color: #33A1E0 !important;
+  color: #fff !important;
+}
+
+.ant-table-thead > tr > th.ant-table-selection-column {
+  background-color: #33A1E0 !important;
+}
+
+.ant-checkbox .ant-checkbox-inner {
+  border-color: #33A1E0;
+}
+
+.ant-checkbox:hover .ant-checkbox-inner {
+  border-color: #33A1E0;
+}
+
+.ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #33A1E0;
+  border-color: #33A1E0;
+}
+
+.ant-checkbox-checked .ant-checkbox-inner::after {
+  border-color: #fff;
+}
