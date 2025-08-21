@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  DesktopOutlined,
+  ProductOutlined,
   PieChartOutlined,
   UserOutlined,
   SearchOutlined,
@@ -52,7 +52,7 @@ const MainLayout = () => {
 
   const menuItems = [
     getItem("Dashboard", "dashboard", <PieChartOutlined />),
-    getItem("Products", "products", <DesktopOutlined />),
+    getItem("Products", "products", <ProductOutlined />),
     getItem("Users", "users", <UserOutlined />),
   ];
 

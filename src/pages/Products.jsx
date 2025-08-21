@@ -7,20 +7,33 @@ import {
   Form,
   Input,
   Popconfirm,
-  Upload
+  Upload,
+  Space,
+  Typography,
 } from "antd";
 import { toast } from "react-toastify";
-import { PlusOutlined, UploadOutlined, DeleteOutlined } from "@ant-design/icons";
+import {
+  PlusOutlined,
+  UploadOutlined,
+  DeleteOutlined,
+} from "@ant-design/icons";
 import { Rate } from "antd";
+
+const { Title } = Typography;
+
+
 
 const Products = () => {
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
+  const [pageSize, setPageSize] = useState(10);
+
 
   const [form] = Form.useForm();
 
@@ -30,6 +43,7 @@ const Products = () => {
       const res = await fetch("https://fakestoreapi.com/products");
       const data = await res.json();
       setProducts(data);
+      setFilteredProducts(data);
     } catch (err) {
       toast.error("Gagal memuat produk", { position: "top-right" });
     } finally {
@@ -40,6 +54,16 @@ const Products = () => {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  const handleSearch = (value) => {
+    const query = value.toLowerCase();
+    const filtered = products.filter(
+      (p) =>
+        p.title.toLowerCase().includes(query) ||
+        p.category.toLowerCase().includes(query)
+    );
+    setFilteredProducts(filtered);
+  };
 
   const handleAdd = () => {
     setEditingProduct(null);
@@ -78,6 +102,9 @@ const Products = () => {
         setProducts((prev) =>
           prev.map((p) => (p.id === updated.id ? updated : p))
         );
+        setFilteredProducts((prev) =>
+          prev.map((p) => (p.id === updated.id ? updated : p))
+        );
       } else {
         const res = await fetch("https://fakestoreapi.com/products", {
           method: "POST",
@@ -88,6 +115,7 @@ const Products = () => {
         toast.success("Produk berhasil ditambahkan", { position: "top-right" });
 
         setProducts((prev) => [...prev, newProduct]);
+        setFilteredProducts((prev) => [...prev, newProduct]);
       }
 
       setIsModalOpen(false);
@@ -105,6 +133,7 @@ const Products = () => {
       toast.success("Produk berhasil dihapus", { position: "top-right" });
 
       setProducts((prev) => prev.filter((p) => p.id !== id));
+      setFilteredProducts((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
       toast.error("Gagal hapus produk", { position: "top-right" });
     }
@@ -125,6 +154,9 @@ const Products = () => {
       });
 
       setProducts((prev) => prev.filter((p) => !selectedRowKeys.includes(p.id)));
+      setFilteredProducts((prev) =>
+        prev.filter((p) => !selectedRowKeys.includes(p.id))
+      );
       setSelectedRowKeys([]);
     } catch (err) {
       toast.error("Gagal hapus produk", { position: "top-right" });
@@ -143,36 +175,52 @@ const Products = () => {
             width: 50,
             height: 50,
             objectFit: "contain",
+            borderRadius: 6,
+            boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
             cursor: "pointer"
           }}
           onClick={() => setPreviewImage(imageUrl)}
         />
       )
     },
-    { title: "Name", dataIndex: "title" },
+    {
+      title: "Name",
+      dataIndex: "title",
+      sorter: (a, b) => a.title.localeCompare(b.title)
+    },
     {
       title: "Price",
       dataIndex: "price",
-      render: (price) => `$${price}`
+      render: (price) => `$${price}`,
+      sorter: (a, b) => a.price - b.price
     },
-    { title: "Category", dataIndex: "category" },
+    {
+      title: "Category",
+      dataIndex: "category",
+      sorter: (a, b) => a.category.localeCompare(b.category)
+    },
     {
       title: "Rating",
       dataIndex: "rating",
+      sorter: (a, b) => a.rating.rate - b.rating.rate,
       render: (rating) => <Rate allowHalf disabled value={rating?.rate} />
     },
     {
       title: "Action",
       render: (_, record) => (
         <Flex gap="small">
-          <Button onClick={() => handleEdit(record)}>Edit</Button>
+          <Button type="link" onClick={() => handleEdit(record)}>
+            Edit
+          </Button>
           <Popconfirm
             title="Yakin hapus produk ini?"
             onConfirm={() => handleDelete(record.id)}
             okText="Ya"
             cancelText="Batal"
           >
-            <Button danger>Delete</Button>
+            <Button type="link" danger>
+              Delete
+            </Button>
           </Popconfirm>
         </Flex>
       )
@@ -181,55 +229,66 @@ const Products = () => {
 
   return (
     <>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 16
-        }}
-      >
-        <Button type="primary" onClick={handleAdd}>
-          <PlusOutlined /> Add Product
-        </Button>
+      <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
+      <Title level={4} style={{ margin: 0 }}>
+          Products Management
+        </Title>
 
-        {selectedRowKeys.length > 0 && (
-          <Popconfirm
-            title="Yakin hapus semua produk terpilih?"
-            onConfirm={handleDeleteAll}
-            okText="Ya"
-            cancelText="Batal"
-          >
-            <Button danger icon={<DeleteOutlined />}>
-              Delete All ({selectedRowKeys.length})
-            </Button>
-          </Popconfirm>
-        )}
-      </div>
+          <Space>
+          <Input.Search
+            placeholder="Cari product..."
+            allowClear
+            onChange={handleSearch}
+            style={{ width: 250 }}
+          />
 
-      <Flex gap="middle" vertical>
-        <Table
-          rowSelection={{
-            selectedRowKeys,
-            onChange: (keys) => setSelectedRowKeys(keys)
-          }}
-          columns={columns}
-          dataSource={products}
-          rowKey="id"
-          loading={loading}
-          
-        />
+          {selectedRowKeys.length > 0 && (
+            <Popconfirm
+              title={`Hapus ${selectedRowKeys.length} user terpilih?`}
+              onConfirm={handleDeleteAll}
+              okText="Ya"
+              cancelText="Batal"
+            >
+              <Button danger icon={<DeleteOutlined />}>
+                Delete All
+              </Button>
+            </Popconfirm>
+          )}
+
+          <Button color="cyan" variant="solid" onClick={handleAdd} icon={<PlusOutlined />}>
+              Add Product
+          </Button>
+        </Space>
       </Flex>
+
+      <Table
+        bordered
+        size="middle"
+        rowSelection={{
+          selectedRowKeys,
+          onChange: (keys) => setSelectedRowKeys(keys)
+        }}
+        columns={columns}
+        dataSource={filteredProducts}
+        rowKey="id"
+        loading={loading}
+       pagination={{
+      pageSize,
+      showSizeChanger: true,
+      pageSizeOptions: [5, 10, 20, 50],
+      onShowSizeChange: (current, size) => setPageSize(size),  }}/>
 
       <Modal
         open={!!previewImage}
         footer={null}
         onCancel={() => setPreviewImage(null)}
         centered
+        bodyStyle={{ backgroundColor: "#000", textAlign: "center" }}
       >
         <img
           src={previewImage}
           alt="Preview"
-          style={{ width: "100%", maxHeight: "70vh", objectFit: "contain" }}
+          style={{ maxWidth: "100%", maxHeight: "70vh" }}
         />
       </Modal>
 
@@ -237,33 +296,45 @@ const Products = () => {
         title={editingProduct ? "Edit Product" : "Add Product"}
         open={isModalOpen}
         onOk={handleSave}
-        onCancel={() => setIsModalOpen(false)}
-        destroyOnClose
-      >
+        onCancel={() => {
+          setIsModalOpen(false);
+          form.resetFields();
+        }}
+        width={500}>
         <Form form={form} layout="vertical">
           <Form.Item
             name="title"
             label="Name"
             rules={[{ required: true, message: "Name Product Mandatory" }]}
           >
-            <Input />
+            <Input placeholder="Masukkan nama produk" />
           </Form.Item>
           <Form.Item
             name="price"
             label="Price"
             rules={[{ required: true, message: "Harga wajib diisi" }]}
           >
-            <Input type="number" />
+            <Input
+              placeholder="Masukkan harga produk"
+              type="number"
+              min={0}
+              step="any"
+              onKeyDown={(e) => {
+                if (["e", "E", "+", "-"].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+            />
           </Form.Item>
           <Form.Item
             name="category"
             label="Category"
             rules={[{ required: true, message: "Kategori wajib diisi" }]}
           >
-            <Input />
+            <Input placeholder="Masukkan kategori produk" />
           </Form.Item>
           <Form.Item name="description" label="Description">
-            <Input.TextArea />
+            <Input.TextArea placeholder="Masukkan deskripsi produk" />
           </Form.Item>
           <Form.Item
             name="image"
@@ -280,7 +351,7 @@ const Products = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </>
+      </>
   );
 };
 
